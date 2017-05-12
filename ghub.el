@@ -244,6 +244,14 @@
         (message "Waiting for %s (%ss)..." resource total)
         (sit-for for)))))
 
+(defun ghub-create-token (scope ident)
+  "Create and save a new token."
+  (interactive (list nil ""))
+  ;; 1. Read scope from user (with completion and docs?).
+  ;; 2. Read token ident from user (suggesting use of package name).
+  ;; 3. Offer to save, else just return/message.
+  (list scope ident))
+
 ;;; ghub.el ends soon
 (provide 'ghub)
 ;; Local Variables:
