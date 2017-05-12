@@ -55,6 +55,13 @@
 ;;
 ;;   (let ((ghub-authenticate nil))
 ;;     (ghub-get "/orgs/magit/repos"))
+;;
+;; Making a request using basic authentication:
+;;
+;; (let ((ghub-authenticate 'basic))
+;;   (ghub-post "/authorizations" nil
+;;              '((scopes . (public_repo))
+;;                (note . "example"))))
 
 ;; Github Enterprise support
 ;; -------------------------
@@ -90,6 +97,7 @@
 (require 'json)
 (require 'subr-x)
 (require 'url)
+(require 'url-auth)
 
 (defvar url-http-end-of-headers)
 (defvar url-http-response-status)
@@ -132,7 +140,10 @@
          (url-request-extra-headers
           `(("Content-Type"  . "application/json")
             ,@(and ghub-authenticate
-                   `(("Authorization" . ,(concat "token " (ghub--token)))))))
+                   `(("Authorization"
+                      . ,(if (eq ghub-authenticate 'basic)
+                             (ghub--basic-auth)
+                           (concat "token " (ghub--token))))))))
          (url-request-method method)
          (url-request-data d))
     (with-current-buffer
@@ -180,6 +191,12 @@
                (concat (url-hexify-string (symbol-name key)) "="
                        (url-hexify-string val)))
              params "&"))
+
+(defun ghub--basic-auth ()
+  (let ((url (url-generic-parse-url ghub-base-url)))
+    (setf (url-user url)
+          (ghub--username))
+    (url-basic-auth url t)))
 
 (defun ghub--token ()
   (or ghub-token
